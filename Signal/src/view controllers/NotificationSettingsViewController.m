@@ -10,6 +10,7 @@
 
 #import "Environment.h"
 #import "NotificationSettingsOptionsViewController.h"
+#import "NotificationSettingsRingtonesViewController.h"
 #import "PreferencesUtil.h"
 
 @interface NotificationSettingsViewController ()
@@ -28,12 +29,21 @@
     [super viewDidLoad];
     [self setTitle:NSLocalizedString(@"SETTINGS_NOTIFICATIONS", nil)];
 
-
     self.notificationsSections = @[
         NSLocalizedString(@"NOTIFICATIONS_SECTION_BACKGROUND", nil),
         NSLocalizedString(@"NOTIFICATIONS_SECTION_INAPP", nil)
     ];
 }
+
+typedef enum {
+    kOptionBackgroundShow = 0,
+    kOptionSound = 1
+} kBackgroundRow;
+
+typedef enum {
+    kSectionBackground = 0,
+    kSectionInApp = 1
+} kSection;
 
 - (void)viewDidAppear:(BOOL)animated {
     [self.tableView reloadData];
@@ -50,7 +60,18 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return 1;
+    switch(section) {
+        case kSectionBackground: {
+            return 2;
+        }
+        case kSectionInApp: {
+            return 1;
+        }
+        default: {
+            // should never reach here
+            return 0;
+        }
+    }
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -62,27 +83,45 @@
     }
 
     PropertyListPreferences *prefs = Environment.preferences;
-    if (indexPath.section == 0) {
-        NotificationType notifType = [prefs notificationPreviewType];
-        NSString *detailString     = [prefs nameForNotificationPreviewType:notifType];
-
-        [[cell textLabel] setText:NSLocalizedString(@"NOTIFICATIONS_SHOW", nil)];
-        [[cell detailTextLabel] setText:detailString];
-        [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
-    } else {
-        BOOL soundEnabled = [prefs soundInForeground];
-
-        [[cell textLabel] setText:NSLocalizedString(@"NOTIFICATIONS_SOUND", nil)];
-        [[cell detailTextLabel] setText:nil];
-        UISwitch *switchv = [[UISwitch alloc] initWithFrame:CGRectZero];
-        switchv.on        = soundEnabled;
-        [switchv addTarget:self
-                      action:@selector(didToggleSoundNotificationsSwitch:)
-            forControlEvents:UIControlEventValueChanged];
-
-        cell.accessoryView = switchv;
+    switch(indexPath.section) {
+        case kSectionBackground: {
+            switch(indexPath.row) {
+                case kOptionBackgroundShow: {
+                    NotificationType notifType = [prefs notificationPreviewType];
+                    NSString *detailString     = [prefs nameForNotificationPreviewType:notifType];
+                    
+                    [[cell textLabel] setText:NSLocalizedString(@"NOTIFICATIONS_SHOW", nil)];
+                    [[cell detailTextLabel] setText:detailString];
+                    [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
+                    break;
+                }
+                case kOptionSound: {
+                    SoundName soundNameEnum = [prefs notificationSound];
+                    NSString *detailString = [prefs nameForNotificationSound:soundNameEnum];
+                    
+                    [[cell textLabel] setText:NSLocalizedString(@"NOTIFICATIONS_SOUND_SELECTION", nil)];
+                    [[cell detailTextLabel] setText:detailString];
+                    [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
+                    break;
+                }
+            }
+            break;
+        }
+        case kSectionInApp: {
+            BOOL soundEnabled = [prefs soundInForeground];
+            
+            [[cell textLabel] setText:NSLocalizedString(@"NOTIFICATIONS_SOUND", nil)];
+            [[cell detailTextLabel] setText:nil];
+            UISwitch *switchv = [[UISwitch alloc] initWithFrame:CGRectZero];
+            switchv.on        = soundEnabled;
+            [switchv addTarget:self
+                        action:@selector(didToggleSoundNotificationsSwitch:)
+              forControlEvents:UIControlEventValueChanged];
+            
+            cell.accessoryView = switchv;
+            break;
+        }
     }
-
     return cell;
 }
 
@@ -91,9 +130,21 @@
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    NotificationSettingsOptionsViewController *vc =
-        [[NotificationSettingsOptionsViewController alloc] initWithStyle:UITableViewStyleGrouped];
-    [self.navigationController pushViewController:vc animated:YES];
+    switch(indexPath.row) {
+        case kOptionBackgroundShow: {
+            NotificationSettingsOptionsViewController *vc =
+            [[NotificationSettingsOptionsViewController alloc] initWithStyle:UITableViewStyleGrouped];
+            [self.navigationController pushViewController:vc animated:YES];
+            break;
+        }
+        case kOptionSound: {
+            NotificationSettingsRingtonesViewController *vc =
+            [[NotificationSettingsRingtonesViewController alloc] initWithStyle:UITableViewStyleGrouped];
+            [self.navigationController pushViewController:vc animated:YES];
+            break;
+        }
+    }
+    
 }
 
 - (void)tableView:(UITableView *)tableView didDeselectRowAtIndexPath:(NSIndexPath *)indexPath {

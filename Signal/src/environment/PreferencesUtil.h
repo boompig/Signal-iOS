@@ -8,6 +8,19 @@ typedef NS_ENUM(NSUInteger, NotificationType) {
     NotificationNamePreview,
 };
 
+typedef NS_ENUM(NSUInteger, SoundName) {
+    SoundNameDefault = 0,
+    SoundNameBlop = 1,
+    SoundNameEvilLaugh = 2,
+    SoundNameGumBubblePop = 3,
+    SoundNameTick = 4,
+    SoundNameChaChingRegister = 5,
+    SoundNameBananaSlap = 6,
+    SoundNameClinkingTeaspoon = 7,
+    SoundNameHolePunch = 8,
+    SoundNamePlayingPool = 9
+};
+
 typedef NS_ENUM(NSUInteger, TSImageQuality) {
     TSImageQualityUncropped = 1,
     TSImageQualityHigh      = 2,
@@ -40,6 +53,13 @@ typedef NS_ENUM(NSUInteger, TSImageQuality) {
 
 - (BOOL)soundInForeground;
 - (void)setSoundInForeground:(BOOL)enabled;
+
+- (NSString*) notificationSoundName;
+- (NSString*) notificationSoundFile;
+- (NSString*) notificationSoundExtension;
+- (SoundName) notificationSound;
+- (void) setNotificationSound:(SoundName)soundNameEnum;
+- (NSString*) nameForNotificationSound:(SoundName)soundNameEnum;
 
 - (BOOL)hasRegisteredVOIPPush;
 - (void)setHasRegisteredVOIPPush:(BOOL)enabled;

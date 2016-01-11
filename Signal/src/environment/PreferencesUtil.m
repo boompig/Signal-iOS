@@ -21,6 +21,7 @@
 #define HAS_ARCHIVED_A_MESSAGE_KEY @"User archived a message"
 #define kSignalVersionKey @"SignalUpdateVersionKey"
 #define PLAY_SOUND_IN_FOREGROUND_KEY @"NotificationSoundInForeground"
+#define NOTIFICATION_SOUND_NAME @"NotificationSoundName"
 #define HAS_REGISTERED_VOIP_PUSH @"VOIPPushEnabled"
 
 @implementation PropertyListPreferences (PropertyUtil)
@@ -189,6 +190,81 @@
 
 - (void)setSoundInForeground:(BOOL)enabled {
     [self setValueForKey:PLAY_SOUND_IN_FOREGROUND_KEY toValue:@(enabled)];
+}
+
+- (NSString*) nameForNotificationSound:(SoundName)soundNameEnum {
+    switch(soundNameEnum) {
+        case SoundNameDefault:
+            return @"Default";
+        case SoundNameBlop:
+            return @"Blop";
+        case SoundNameEvilLaugh:
+            return @"Evil Laugh";
+        case SoundNameBananaSlap:
+            return @"Banana Slap";
+        case SoundNameChaChingRegister:
+            return @"Cha Ching";
+        case SoundNameGumBubblePop:
+            return @"Bubble Gum";
+        case SoundNameTick:
+            return @"Tick";
+        case SoundNameClinkingTeaspoon:
+            return @"Clink";
+        case SoundNameHolePunch:
+            return @"Hole Punch";
+        case SoundNamePlayingPool:
+            return @"Pool";
+    }
+}
+
+- (NSString*) notificationSoundFile {
+    SoundName soundNameEnum = [self notificationSound];
+    switch (soundNameEnum) {
+        case SoundNameDefault:
+            return @"NewMessage.aifc";
+        case SoundNameBlop:
+            return @"blop.mp3";
+        case SoundNameEvilLaugh:
+            return @"EvilLaugh.mp3";
+        case SoundNameTick:
+            return @"Tick.mp3";
+        case SoundNameBananaSlap:
+            return @"BananaSlap.mp3";
+        case SoundNameGumBubblePop:
+            return @"GumBubblePop.mp3";
+        case SoundNameChaChingRegister:
+            return @"ChaChingRegister.mp3";
+        case SoundNameClinkingTeaspoon:
+            return @"ClinkingTeaspoon.mp3";
+        case SoundNameHolePunch:
+            return @"HolePunch.mp3";
+        case SoundNamePlayingPool:
+            return @"PlayingPool.mp3";
+    }
+}
+
+- (NSString*) notificationSoundName {
+    NSString* filename = [self notificationSoundFile];
+    return [[filename lastPathComponent] stringByDeletingPathExtension];
+}
+
+- (SoundName) notificationSound {
+    NSNumber* preference = [self tryGetValueForKey: NOTIFICATION_SOUND_NAME];
+    if (preference) {
+        NSUInteger soundNameEnum = [preference unsignedIntegerValue];
+        return soundNameEnum;
+    } else {
+        return SoundNameDefault;
+    }
+}
+
+- (NSString*) notificationSoundExtension {
+    NSString* filename = [self notificationSoundFile];
+    return [filename pathExtension];
+}
+
+- (void) setNotificationSound:(SoundName)soundNameEnum {
+    [self setValueForKey:NOTIFICATION_SOUND_NAME toValue:@(soundNameEnum)];
 }
 
 - (void)setNotificationPreviewType:(NotificationType)type {

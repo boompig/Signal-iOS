@@ -28,13 +28,21 @@
 - (instancetype)init {
     self = [super init];
 
+
     if (self) {
-        NSURL *newMessageSound =
-            [NSURL URLWithString:[[NSBundle mainBundle] pathForResource:@"NewMessage" ofType:@"aifc"]];
-        self.newMessageSound = AudioServicesCreateSystemSoundID((__bridge CFURLRef)newMessageSound, &_newMessageSound);
+        [self registerNotificationSound];
     }
 
     return self;
+}
+
+- (void)registerNotificationSound {
+    PropertyListPreferences *prefs = Environment.preferences;
+    NSString* name = [prefs notificationSoundName];
+    NSString* ext = [prefs notificationSoundExtension];
+    NSURL *newMessageSound =
+    [NSURL URLWithString:[[NSBundle mainBundle] pathForResource:name ofType:ext]];
+    AudioServicesCreateSystemSoundID((__bridge CFURLRef)newMessageSound, &_newMessageSound);
 }
 
 - (void)notifyUserForCall:(TSCall *)call inThread:(TSThread *)thread {
@@ -48,8 +56,9 @@
                 [[UIApplication sharedApplication] cancelLocalNotification:notif];
             }
 
+            PropertyListPreferences *prefs = Environment.preferences;
             UILocalNotification *notification = [[UILocalNotification alloc] init];
-            notification.soundName            = @"NewMessage.aifc";
+            notification.soundName            = [prefs notificationSoundFile];
             if ([[Environment preferences] notificationPreviewType] == NotificationNoNameNoPreview) {
                 notification.alertBody = [NSString stringWithFormat:NSLocalizedString(@"MISSED_CALL", nil)];
             } else {
@@ -66,11 +75,13 @@
 
 - (void)notifyUserForErrorMessage:(TSErrorMessage *)message inThread:(TSThread *)thread {
     NSString *messageDescription = message.description;
+    [self registerNotificationSound];
 
     if (([UIApplication sharedApplication].applicationState != UIApplicationStateActive) && messageDescription) {
         UILocalNotification *notification = [[UILocalNotification alloc] init];
         notification.userInfo             = @{Signal_Thread_UserInfo_Key : thread.uniqueId};
-        notification.soundName            = @"NewMessage.aifc";
+        PropertyListPreferences *prefs = Environment.preferences;
+        notification.soundName            = [prefs notificationSoundFile];
 
         NSString *alertBodyString = @"";
 
@@ -96,10 +107,13 @@
 
 - (void)notifyUserForIncomingMessage:(TSIncomingMessage *)message from:(NSString *)name inThread:(TSThread *)thread {
     NSString *messageDescription = message.description;
+    
+    PropertyListPreferences *prefs = Environment.preferences;
+    [self registerNotificationSound];
 
     if ([UIApplication sharedApplication].applicationState != UIApplicationStateActive && messageDescription) {
         UILocalNotification *notification = [[UILocalNotification alloc] init];
-        notification.soundName            = @"NewMessage.aifc";
+        notification.soundName            = [prefs notificationSoundFile];
 
         switch ([[Environment preferences] notificationPreviewType]) {
             case NotificationNamePreview:
